@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QQQ × SPY 历轮熊市回撤终端 · Obsidian Gold</title>
+<style>
+/* ============================================================
+   DESIGN TOKENS — Obsidian & Gold
+   ============================================================ */
+:root{
+  --bg:#05060A;
+  --bg-2:#080A10;
+  --panel:#0B0E15;
+  --panel-2:#11151E;
+  --panel-3:#161B26;
+
+  --line:rgba(212,175,55,.16);
+  --line-strong:rgba(212,175,55,.34);
+  --line-soft:rgba(255,255,255,.055);
+
+  --gold-1:#FBF1D0;
+  --gold-2:#E8C87E;
+  --gold-3:#D4AF37;
+  --gold-4:#A9822B;
+  --gold-5:#6E5316;
+
+  --rose:#FF4D5F;
+  --rose-soft:#FF8794;
+  --teal:#2FD8A8;
+  --teal-soft:#8FEBD4;
+
+  --text:#E9EAF0;
+  --text-2:#C2C6D2;
+  --muted:#868C9C;
+  --muted-2:#5C6272;
+
+  --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:"JetBrains Mono","SF Mono",ui-monospace,"Cascadia Code",Consolas,"Courier New",monospace;
+
+  --r-sm:8px;
+  --r-md:12px;
+  --r-lg:16px;
+  --r-xl:20px;
+
+  --ease:cubic-bezier(.16,1,.3,1);
+  --ease-2:cubic-bezier(.22,1,.36,1);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+html{scroll-behavior:smooth}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(1200px 700px at 12% -8%, rgba(212,175,55,.10), transparent 62%),
+    radial-gradient(900px 600px at 92% 2%, rgba(140,110,35,.07), transparent 60%),
+    linear-gradient(180deg,#05060A 0%,#06080D 45%,#04050A 100%);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+::selection{background:rgba(212,175,55,.28);color:#FFF7E0}
+
+/* 细网格纹理 */
+body::before{
+  content:"";
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 0%, #000 40%, transparent 100%);
+  -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 0%, #000 40%, transparent 100%);
+}
+
+/* 金箔颗粒 */
+.grain{
+  position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.05;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+}
+
+/* 极光光晕 */
+.aurora{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.aurora i{
+  position:absolute;display:block;border-radius:50%;
+  filter:blur(110px);will-change:transform;
+}
+.aurora .a1{width:640px;height:520px;left:-8%;top:-14%;background:rgba(212,175,55,.16);animation:drift1 26s var(--ease-2) infinite alternate}
+.aurora .a2{width:560px;height:480px;right:-6%;top:6%;background:rgba(120,90,25,.20);animation:drift2 31s var(--ease-2) infinite alternate}
+.aurora .a3{width:520px;height:420px;left:38%;top:44%;background:rgba(47,216,168,.05);animation:drift3 38s var(--ease-2) infinite alternate}
+
+@keyframes drift1{to{transform:translate3d(90px,60px,0) scale(1.12)}}
+@keyframes drift2{to{transform:translate3d(-70px,80px,0) scale(1.08)}}
+@keyframes drift3{to{transform:translate3d(60px,-70px,0) scale(1.15)}}
+
+/* 鼠标光斑 */
+.cursor-glow{
+  position:fixed;left:0;top:0;width:560px;height:560px;margin:-280px 0 0 -280px;
+  z-index:1;pointer-events:none;opacity:0;transition:opacity .6s ease;
+  background:radial-gradient(circle, rgba(212,175,55,.10) 0%, rgba(212,175,55,.05) 38%, transparent 66%);
+  will-change:transform;
+}
+.cursor-glow.on{opacity:1}
+
+/* 滚动进度 */
+.scroll-progress{
+  position:fixed;left:0;top:0;height:2px;width:0;z-index:80;
+  background:linear-gradient(90deg,#6E5316,#D4AF37 45%,#FBF1D0 78%,#FF4D5F);
+  box-shadow:0 0 16px rgba(212,175,55,.55);
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.wrap{max-width:1400px;margin:0 auto;padding:0 26px;position:relative;z-index:3}
+@media (max-width:640px){.wrap{padding:0 16px}}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.topbar{
+  position:sticky;top:0;z-index:60;
+  background:linear-gradient(180deg, rgba(5,6,10,.94), rgba(5,6,10,.78));
+  backdrop-filter:blur(22px) saturate(140%);
+  -webkit-backdrop-filter:blur(22px) saturate(140%);
+  border-bottom:1px solid rgba(212,175,55,.13);
+}
+.topbar::after{
+  content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(212,175,55,.55),rgba(251,241,208,.25),rgba(212,175,55,.35),transparent);
+  opacity:.7;
+}
+.topbar-inner{
+  max-width:1400px;margin:0 auto;padding:14px 26px;
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+}
+@media (max-width:640px){.topbar-inner{padding:12px 16px;gap:12px}}
+
+.brand{display:flex;align-items:center;gap:13px;min-width:0}
+.brand-mark{
+  width:40px;height:40px;flex:0 0 40px;border-radius:11px;
+  display:grid;place-items:center;
+  background:linear-gradient(150deg,rgba(212,175,55,.22),rgba(110,83,22,.10));
+  border:1px solid rgba(212,175,55,.34);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 8px 20px -10px rgba(212,175,55,.5);
+  position:relative;overflow:hidden;
+}
+.brand-mark svg{width:21px;height:21px;color:var(--gold-2)}
+.brand-mark::after{
+  content:"";position:absolute;inset:-40%;
+  background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.30) 50%,transparent 60%);
+  transform:translateX(-100%);animation:markSweep 5.5s ease-in-out infinite;
+}
+@keyframes markSweep{0%,72%{transform:translateX(-100%)}92%,100%{transform:translateX(100%)}}
+
+.brand-title{
+  font-size:16px;font-weight:700;letter-spacing:.2px;color:#F4F5F8;
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+}
+.brand-sub{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.10em;
+  color:var(--muted-2);text-transform:uppercase;margin-top:2px;
+}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:3px 8px;border-radius:5px;
+  font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.10em;
+  border:1px solid rgba(212,175,55,.28);
+  background:rgba(212,175,55,.08);color:var(--gold-2);
+  text-transform:uppercase;white-space:nowrap;
+}
+.chip.rose{border-color:rgba(255,77,95,.30);background:rgba(255,77,95,.10);color:var(--rose-soft)}
+.chip.teal{border-color:rgba(47,216,168,.26);background:rgba(47,216,168,.09);color:var(--teal-soft)}
+
+.top-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+.live{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:7px 13px;border-radius:9px;
+  background:rgba(255,77,95,.07);
+  border:1px solid rgba(255,77,95,.26);
+  font-family:var(--mono);font-size:11px;color:var(--text-2);
+}
+.dot{
+  width:6px;height:6px;border-radius:50%;background:var(--rose);
+  box-shadow:0 0 0 0 rgba(255,77,95,.65);
+  animation:beacon 2.4s ease-in-out infinite;
+}
+@keyframes beacon{
+  0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,77,95,.65)}
+  55%{opacity:.85;box-shadow:0 0 0 7px rgba(255,77,95,0)}
+}
+.live b{color:var(--rose-soft);font-weight:600;letter-spacing:.08em}
+
+/* 口径切换 */
+.seg{
+  display:inline-flex;padding:3px;border-radius:9px;
+  background:rgba(8,10,16,.9);border:1px solid rgba(255,255,255,.08);
+  position:relative;
+}
+.seg button{
+  appearance:none;border:0;background:transparent;cursor:pointer;
+  padding:6px 13px;border-radius:6px;
+  font-family:var(--sans);font-size:11.5px;font-weight:500;color:var(--muted);
+  transition:color .28s ease,background .28s ease,box-shadow .28s ease;
+  white-space:nowrap;
+}
+.seg button:hover{color:var(--text-2)}
+.seg button.active{
+  color:#1A1405;font-weight:700;
+  background:linear-gradient(160deg,var(--gold-1),var(--gold-2) 55%,var(--gold-3));
+  box-shadow:0 4px 14px -6px rgba(212,175,55,.85),inset 0 1px 0 rgba(255,255,255,.55);
+}
+
+/* 过滤条 */
+.filterbar{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:0 26px 13px;max-width:1400px;margin:0 auto;flex-wrap:wrap;
+}
+@media (max-width:640px){.filterbar{padding:0 16px 12px}}
+.tabs{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:3px;border-radius:11px;background:rgba(8,10,16,.72);border:1px solid rgba(255,255,255,.06)}
+.tab{
+  appearance:none;border:1px solid transparent;background:transparent;cursor:pointer;
+  padding:6px 12px;border-radius:8px;font-size:11.5px;font-weight:500;color:var(--muted);
+  transition:all .3s var(--ease);display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+}
+.tab:hover{color:var(--text-2);background:rgba(255,255,255,.03)}
+.tab.active{
+  color:var(--gold-1);background:rgba(212,175,55,.12);
+  border-color:rgba(212,175,55,.38);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 18px -8px rgba(212,175,55,.7);
+}
+.tab .pulse{width:5px;height:5px;border-radius:50%;background:var(--rose);animation:beacon 2.2s infinite}
+
+.legend{display:flex;align-items:center;gap:16px;font-family:var(--mono);font-size:10.5px;color:var(--muted-2);flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:9px;height:9px;border-radius:2px;display:inline-block}
+.sw.q{background:linear-gradient(160deg,var(--gold-1),var(--gold-3))}
+.sw.s{background:linear-gradient(160deg,var(--teal-soft),var(--teal))}
+.sw.bear{width:14px;height:0;border-top:1px dashed rgba(255,77,95,.8)}
+
+/* 行情跑马灯 */
+.ticker{
+  position:relative;overflow:hidden;
+  border-top:1px solid rgba(212,175,55,.10);
+  border-bottom:1px solid rgba(212,175,55,.10);
+  background:linear-gradient(90deg,rgba(10,12,18,.9),rgba(14,17,24,.75),rgba(10,12,18,.9));
+  z-index:3;
+}
+.ticker::before,.ticker::after{
+  content:"";position:absolute;top:0;bottom:0;width:90px;z-index:2;pointer-events:none;
+}
+.ticker::before{left:0;background:linear-gradient(90deg,#05060A,transparent)}
+.ticker::after{right:0;background:linear-gradient(270deg,#05060A,transparent)}
+.ticker-track{display:flex;gap:0;width:max-content;animation:marquee 46s linear infinite;will-change:transform}
+.ticker:hover .ticker-track{animation-play-state:paused}
+@keyframes marquee{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+.tick{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:9px 20px;font-family:var(--mono);font-size:11px;
+  border-right:1px solid rgba(255,255,255,.05);white-space:nowrap;
+}
+.tick .k{color:var(--muted-2);letter-spacing:.06em}
+.tick .v{color:var(--text);font-weight:600}
+.tick .up{color:var(--rose-soft)}
+.tick .down{color:var(--teal-soft)}
+.tick .g{color:var(--gold-2)}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{
+  display:grid;grid-template-columns:1.35fr .65fr;gap:34px;
+  padding:52px 0 34px;align-items:center;
+}
+@media (max-width:1000px){.hero{grid-template-columns:1fr;gap:26px;padding:34px 0 24px}}
+
+.eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;
+  color:var(--gold-3);text-transform:uppercase;margin-bottom:16px;
+}
+.eyebrow .rule{width:34px;height:1px;background:linear-gradient(90deg,var(--gold-3),transparent)}
+
+h1{
+  margin:0;font-weight:800;letter-spacing:-.015em;
+  font-size:clamp(30px,4.1vw,54px);line-height:1.12;
+}
+h1 .line2{
+  display:block;
+  background:linear-gradient(100deg,#8A6A20 0%,#D4AF37 26%,#FBF1D0 48%,#E8C87E 66%,#A9822B 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  background-size:220% 100%;
+  animation:goldShift 9s ease-in-out infinite alternate;
+}
+@keyframes goldShift{from{background-position:0% 50%}to{background-position:100% 50%}}
+
+.hero p.lede{
+  margin:18px 0 0;max-width:600px;color:var(--muted);
+  font-size:13.5px;line-height:1.85;
+}
+.hero p.lede b{color:var(--text-2);font-weight:600}
+
+.hero-stats{display:flex;gap:26px;margin-top:26px;flex-wrap:wrap}
+.hs .hs-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--muted-2);text-transform:uppercase}
+.hs .hs-v{font-family:var(--mono);font-size:17px;font-weight:700;margin-top:3px;color:var(--text)}
+
+/* 环形仪表 */
+.gauge-card{
+  position:relative;border-radius:var(--r-xl);padding:24px 22px 20px;
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(212,175,55,.10), transparent 62%),
+    linear-gradient(170deg,rgba(20,23,31,.95),rgba(9,11,16,.98));
+  border:1px solid rgba(212,175,55,.20);
+  box-shadow:0 30px 70px -40px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.06);
+  overflow:hidden;
+}
+.gauge-card::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(212,175,55,.85),transparent);
+}
+.gauge-head{display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--muted-2);text-transform:uppercase}
+.gauge-wrap{position:relative;display:grid;place-items:center;margin:6px 0 4px}
+.gauge{width:100%;max-width:236px;height:auto;transform:rotate(-90deg)}
+.gauge-track{fill:none;stroke:rgba(212,175,55,.11);stroke-width:9;stroke-linecap:round}
+.gauge-fill{
+  fill:none;stroke:url(#gaugeGrad);stroke-width:9;stroke-linecap:round;
+  stroke-dasharray:490.1;stroke-dashoffset:490.1;
+  transition:stroke-dashoffset 1.15s var(--ease);
+  filter:drop-shadow(0 0 8px rgba(212,175,55,.45));
+}
+.gauge-marker{stroke:rgba(255,77,95,.75);stroke-width:2;stroke-linecap:round}
+.gauge-center{
+  position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none;
+}
+.gauge-center .gc-v{
+  font-family:var(--mono);font-size:34px;font-weight:700;letter-spacing:-.02em;
+  color:var(--gold-2);text-shadow:0 0 26px rgba(212,175,55,.35);line-height:1.1;
+}
+.gauge-center .gc-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:var(--muted-2);text-transform:uppercase;margin-top:6px}
+.gauge-foot{display:flex;justify-content:space-between;gap:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,.05);font-family:var(--mono);font-size:10px;color:var(--muted-2)}
+.gauge-foot b{display:block;color:var(--text);font-size:12px;font-weight:600;margin-top:2px}
+.gauge-foot .r b{color:var(--rose-soft)}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card{
+  position:relative;border-radius:var(--r-lg);
+  background:linear-gradient(168deg,rgba(18,21,29,.92) 0%,rgba(9,11,16,.97) 100%);
+  border:1px solid var(--line-soft);
+  box-shadow:0 24px 60px -40px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.045);
+  transition:transform .55s var(--ease),border-color .45s ease,box-shadow .55s ease;
+  overflow:hidden;
+}
+.card::before{
+  content:"";position:absolute;left:14px;right:14px;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(212,175,55,.42),transparent);
+  opacity:.55;transition:opacity .45s ease;
+}
+.card .sheen{
+  position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .5s ease;
+  background:radial-gradient(300px circle at var(--mx,50%) var(--my,50%), rgba(212,175,55,.10), transparent 68%);
+}
+.card:hover{border-color:rgba(212,175,55,.30);box-shadow:0 34px 80px -46px rgba(0,0,0,1),0 0 0 1px rgba(212,175,55,.07),0 0 46px -22px rgba(212,175,55,.35)}
+.card:hover::before{opacity:1}
+.card:hover .sheen{opacity:1}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.kpis{grid-template-columns:1fr}}
+
+.kpi{padding:19px 19px 16px;transition:transform .55s var(--ease),border-color .45s ease,box-shadow .55s ease}
+.kpi:hover{transform:translateY(-3px)}
+.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.kpi-label{font-size:11.5px;color:var(--muted);letter-spacing:.01em}
+.tag{
+  font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.08em;
+  padding:2.5px 7px;border-radius:4px;white-space:nowrap;
+  border:1px solid rgba(255,255,255,.10);color:var(--muted);
+}
+.tag.rose{border-color:rgba(255,77,95,.32);background:rgba(255,77,95,.09);color:var(--rose-soft)}
+.tag.teal{border-color:rgba(47,216,168,.26);background:rgba(47,216,168,.08);color:var(--teal-soft)}
+.tag.gold{border-color:rgba(212,175,55,.32);background:rgba(212,175,55,.09);color:var(--gold-2)}
+
+.kpi-mid{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin:10px 0 0}
+.kpi-val{
+  font-family:var(--mono);font-weight:700;letter-spacing:-.02em;
+  font-size:clamp(24px,2.4vw,31px);line-height:1.1;
+  font-variant-numeric:tabular-nums;
+}
+.kpi-val.gold{color:var(--gold-2);text-shadow:0 0 30px rgba(212,175,55,.28)}
+.kpi-val.teal{color:var(--teal)}
+.kpi-val.white{color:#F2F3F7;font-size:clamp(18px,1.8vw,22px)}
+.kpi-val .u{font-size:.5em;font-weight:500;opacity:.7;margin-left:2px}
+.kpi-val .vs{font-size:.42em;color:var(--muted-2);margin:0 6px;font-weight:500}
+
+.spark{width:88px;height:34px;overflow:visible;flex:0 0 auto}
+.spark .ln{fill:none;stroke-width:1.8;stroke-linecap:round;stroke-dasharray:220;stroke-dashoffset:220}
+.in .spark .ln{animation:draw 1.7s var(--ease) forwards .35s}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+.kpi-sub{
+  margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.055);
+  font-family:var(--mono);font-size:10.5px;line-height:1.75;color:var(--muted);
+}
+.kpi-sub .hl{color:var(--text)}
+.kpi-sub .r{color:var(--rose-soft)}
+.kpi-sub .g{color:var(--gold-2)}
+
+.split-bars{display:flex;flex-direction:column;gap:5px;width:88px}
+.split-bars .track{height:3px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
+.split-bars .fill{height:100%;border-radius:99px;transform-origin:left;transform:scaleX(0);transition:transform 1.1s var(--ease)}
+.in .split-bars .fill{transform:scaleX(1)}
+.split-bars .fq{background:linear-gradient(90deg,var(--gold-4),var(--gold-2))}
+.split-bars .fs{background:linear-gradient(90deg,#146B58,var(--teal))}
+
+/* ============================================================
+   MAIN GRID — CHART + SIDE
+   ============================================================ */
+.main-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-top:16px}
+@media (max-width:1180px){.main-grid{grid-template-columns:1fr}}
+
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.panel-title{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:#F2F3F7;letter-spacing:.01em}
+.bar-mark{width:3px;height:16px;border-radius:2px;background:linear-gradient(180deg,var(--gold-1),var(--gold-4));box-shadow:0 0 12px rgba(212,175,55,.55);flex:0 0 3px}
+.panel-desc{font-size:11.5px;color:var(--muted-2);margin-top:4px;line-height:1.6}
+
+.chart-card{padding:20px 20px 12px;display:flex;flex-direction:column}
+.chart-tag{
+  font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+  padding:5px 10px;border-radius:6px;
+  border:1px solid rgba(212,175,55,.22);background:rgba(212,175,55,.07);color:var(--gold-2);
+  white-space:nowrap;
+}
+.canvas-wrap{position:relative;width:100%;height:392px;margin-top:2px}
+@media (max-width:640px){.canvas-wrap{height:330px}}
+#chartCanvas{width:100%;height:100%;display:block;cursor:crosshair}
+
+/* Tooltip */
+.tt{
+  position:fixed;z-index:90;width:290px;padding:14px;
+  border-radius:12px;pointer-events:none;opacity:0;transform:translateY(6px) scale(.985);
+  transition:opacity .18s ease,transform .18s var(--ease);
+  background:linear-gradient(170deg,rgba(16,19,27,.97),rgba(8,10,15,.98));
+  border:1px solid rgba(212,175,55,.34);
+  box-shadow:0 26px 60px -24px rgba(0,0,0,1),0 0 0 1px rgba(212,175,55,.06),inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter:blur(14px);
+}
+.tt.on{opacity:1;transform:translateY(0) scale(1)}
+.tt-title{font-size:12.5px;font-weight:700;color:#F5F6FA}
+.tt-date{font-family:var(--mono);font-size:10px;color:var(--muted-2);margin:3px 0 10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.07)}
+.tt-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:11px;padding:2.5px 0}
+.tt-row .k{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
+.tt-row .v{font-weight:700}
+.tt-row .v.q{color:var(--gold-2)}
+.tt-row .v.s{color:var(--teal)}
+.tt-note{margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.07);font-size:10.5px;line-height:1.65;color:var(--text-2)}
+
+/* 深度标尺 */
+.side-card{padding:20px;display:flex;flex-direction:column;gap:18px}
+.gauge-list{display:flex;flex-direction:column;gap:5px;max-height:288px;overflow-y:auto;padding-right:4px}
+.gauge-list::-webkit-scrollbar{width:4px}
+.gauge-list::-webkit-scrollbar-thumb{background:rgba(212,175,55,.22);border-radius:99px}
+
+.grow{
+  padding:7px 9px;border-radius:8px;cursor:pointer;
+  border:1px solid transparent;background:rgba(8,10,16,.55);
+  transition:all .35s var(--ease);
+}
+.grow:hover{background:rgba(212,175,55,.055);border-color:rgba(212,175,55,.18);transform:translateX(2px)}
+.grow.active{background:rgba(212,175,55,.10);border-color:rgba(212,175,55,.32);box-shadow:inset 0 0 0 1px rgba(212,175,55,.06)}
+.grow-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;margin-bottom:5px}
+.grow-name{color:var(--text-2);display:flex;align-items:center;gap:6px;min-width:0}
+.grow.active .grow-name{color:#fff;font-weight:600}
+.grow-name .now{width:5px;height:5px;border-radius:50%;background:var(--rose);flex:0 0 5px;animation:beacon 2.2s infinite}
+.grow-val{font-family:var(--mono);font-weight:700;font-size:11px;color:var(--gold-2);font-variant-numeric:tabular-nums}
+.grow.cur .grow-val{color:var(--rose-soft)}
+.track{position:relative;height:5px;border-radius:99px;background:rgba(255,255,255,.055);overflow:hidden}
+.track .bearline{position:absolute;top:-2px;bottom:-2px;width:1px;background:rgba(255,77,95,.75);z-index:2}
+.track .fill{
+  height:100%;border-radius:99px;width:0;
+  transition:width 1s var(--ease);
+  background:linear-gradient(90deg,var(--gold-4),var(--gold-2));
+}
+.track .fill.deep{background:linear-gradient(90deg,#7A2029,#FF4D5F)}
+.track .fill.cur{background:linear-gradient(90deg,#FF4D5F,#F0B429 55%,#D4AF37)}
+.grow.cur .track::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
+  animation:sweep 2.6s linear infinite;
+}
+@keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(220%)}}
+
+/* 杠杆压力测试 */
+.stress{padding-top:16px;border-top:1px solid rgba(255,255,255,.06)}
+.stress-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.stress-hd h3{margin:0;font-size:13px;font-weight:700;color:#F2F3F7;display:flex;align-items:center;gap:7px}
+.stress-hd h3 svg{width:14px;height:14px;color:var(--gold-3)}
+.stress-hd p{margin:3px 0 0;font-size:10.5px;color:var(--muted-2);line-height:1.5}
+
+select{
+  appearance:none;cursor:pointer;
+  background:rgba(8,10,16,.95) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23D4AF37'/%3E%3C/svg%3E") no-repeat right 9px center;
+  border:1px solid rgba(212,175,55,.24);border-radius:7px;
+  padding:6px 26px 6px 9px;font-family:var(--sans);font-size:11px;color:var(--gold-2);
+  max-width:158px;transition:border-color .3s ease,box-shadow .3s ease;
+}
+select:hover,select:focus{outline:none;border-color:rgba(212,175,55,.55);box-shadow:0 0 0 3px rgba(212,175,55,.08)}
+
+.levs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lev{
+  padding:11px 8px;border-radius:9px;text-align:center;
+  background:rgba(6,8,13,.8);border:1px solid rgba(255,255,255,.07);
+  transition:all .4s var(--ease);
+}
+.lev:hover{transform:translateY(-2px);border-color:rgba(212,175,55,.28)}
+.lev .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;color:var(--muted-2)}
+.lev .v{font-family:var(--mono);font-size:15px;font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums}
+.lev .r{font-family:var(--mono);font-size:9px;color:var(--muted-2);margin-top:4px}
+.lev.l1{border-color:rgba(212,175,55,.22)}
+.lev.l1 .v{color:var(--gold-2)}
+.lev.l2{border-color:rgba(240,180,41,.28)}
+.lev.l2 .v{color:#F0B429}
+.lev.l3{border-color:rgba(255,77,95,.30);background:linear-gradient(170deg,rgba(255,77,95,.07),rgba(6,8,13,.9))}
+.lev.l3 .v{color:var(--rose)}
+
+.stress-foot{
+  margin-top:9px;padding:8px 11px;border-radius:8px;
+  background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);
+  display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:10px;color:var(--muted-2);
+}
+.stress-foot b{color:var(--text-2);font-weight:600}
+
+/* ============================================================
+   MATRIX TABLE
+   ============================================================ */
+.matrix{margin-top:16px;padding:0;overflow:hidden}
+.matrix-hd{padding:20px 20px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sort-group{display:flex;align-items:center;gap:6px;font-size:11px;flex-wrap:wrap}
+.sort-group .lab{color:var(--muted-2);font-family:var(--mono);font-size:10px;letter-spacing:.06em;margin-right:2px}
+.sbtn{
+  appearance:none;cursor:pointer;padding:5px 11px;border-radius:6px;
+  border:1px solid rgba(255,255,255,.08);background:transparent;
+  font-size:11px;color:var(--muted);font-family:var(--sans);
+  transition:all .3s var(--ease);
+}
+.sbtn:hover{color:var(--text-2);border-color:rgba(255,255,255,.16)}
+.sbtn.active{
+  color:#1A1405;font-weight:700;border-color:transparent;
+  background:linear-gradient(160deg,var(--gold-1),var(--gold-3));
+  box-shadow:0 4px 14px -7px rgba(212,175,55,.9);
+}
+
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:900px}
+thead th{
+  position:sticky;top:0;
+  background:rgba(8,10,15,.97);
+  font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.10em;
+  text-transform:uppercase;color:var(--muted-2);
+  text-align:left;padding:11px 16px;white-space:nowrap;
+  border-top:1px solid rgba(255,255,255,.055);
+  border-bottom:1px solid rgba(212,175,55,.14);
+}
+thead th.num{text-align:right;cursor:pointer;transition:color .25s ease}
+thead th.num:hover{color:var(--gold-2)}
+
+tbody tr{
+  cursor:pointer;
+  transition:background .3s ease;
+}
+tbody td{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.045);vertical-align:middle}
+tbody td:first-child{
+  border-left:2px solid transparent;
+  transition:border-color .3s ease,box-shadow .3s ease;
+}
+tbody tr:hover{background:rgba(212,175,55,.045)}
+tbody tr:hover td:first-child{border-left-color:rgba(212,175,55,.45)}
+tbody tr.selected{background:linear-gradient(90deg,rgba(212,175,55,.12),rgba(212,175,55,.03) 55%,transparent)}
+tbody tr.selected td:first-child{
+  border-left-color:var(--gold-3);
+  box-shadow:inset 0 0 14px -6px rgba(212,175,55,.8);
+}
+
+.cell-name{display:flex;align-items:center;gap:9px;font-weight:600;font-size:12.5px;color:#EDEEF3;white-space:nowrap}
+.cell-name .now{width:6px;height:6px;border-radius:50%;background:var(--rose);flex:0 0 6px;animation:beacon 2.2s infinite}
+.cell-name .idle{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.18);flex:0 0 5px}
+.cell-period{font-family:var(--mono);font-size:10.5px;color:var(--muted-2);white-space:nowrap}
+td.num{text-align:right;font-family:var(--mono);font-weight:700;font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.num.q{color:var(--gold-2)}
+td.num.s{color:var(--teal)}
+td.num.d{color:var(--rose-soft)}
+td.num.d.pos{color:var(--teal-soft)}
+.cell-meta{font-family:var(--mono);font-size:10px;color:var(--muted-2);line-height:1.6;max-width:220px}
+.cell-meta b{color:var(--text-2);font-weight:500}
+
+/* Inspector */
+.inspector{
+  position:relative;
+  padding:20px;
+  background:linear-gradient(100deg,rgba(212,175,55,.055),rgba(10,13,19,.5) 45%,rgba(212,175,55,.03));
+  border-top:1px solid rgba(212,175,55,.22);
+  display:grid;grid-template-columns:1fr auto;gap:22px;align-items:center;
+}
+@media (max-width:900px){.inspector{grid-template-columns:1fr}}
+.inspector::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(251,241,208,.5),transparent);
+}
+.insp-label{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.14em;
+  color:var(--gold-2);border:1px solid rgba(212,175,55,.3);
+  background:rgba(212,175,55,.08);padding:3px 8px;border-radius:4px;
+}
+.insp-title-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px}
+.insp-title{font-size:14.5px;font-weight:700;color:#F4F5F9;margin:0}
+.insp-date{font-family:var(--mono);font-size:10.5px;color:var(--muted-2)}
+.insp-desc{margin:9px 0 0;font-size:12px;line-height:1.8;color:var(--text-2);max-width:760px}
+.insp-stats{display:grid;grid-template-columns:repeat(3,minmax(96px,1fr));gap:10px;padding:12px;border-radius:11px;background:rgba(6,8,13,.75);border:1px solid rgba(255,255,255,.07)}
+.insp-stats .k{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--muted-2)}
+.insp-stats .v{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--text);margin-top:4px;line-height:1.4}
+.insp-stats .v.gold{color:var(--gold-2)}
+.insp-stats .v.teal{color:var(--teal-soft)}
+
+/* ============================================================
+   INSIGHTS
+   ============================================================ */
+.insights{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:16px 0 40px}
+@media (max-width:980px){.insights{grid-template-columns:1fr}}
+.insight{padding:20px 20px 18px;border-left:2px solid rgba(212,175,55,.45)}
+.insight:nth-child(1){border-left-color:rgba(212,175,55,.55)}
+.insight:nth-child(2){border-left-color:rgba(255,77,95,.45)}
+.insight:nth-child(3){border-left-color:rgba(47,216,168,.40)}
+.insight .idx{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:var(--gold-3);text-transform:uppercase}
+.insight h3{margin:6px 0 8px;font-size:13.5px;font-weight:700;color:#F2F3F7;line-height:1.5}
+.insight p{margin:0;font-size:11.5px;line-height:1.85;color:var(--muted)}
+.insight p b{color:var(--gold-2);font-family:var(--mono);font-weight:600}
+.insight p .r{color:var(--rose-soft);font-family:var(--mono)}
+.insight p .t{color:var(--teal-soft);font-family:var(--mono)}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer{
+  border-top:1px solid rgba(255,255,255,.055);
+  padding:22px 0 34px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:10px;color:var(--muted-2);letter-spacing:.04em;
+}
+footer .fl{display:flex;align-items:center;gap:10px}
+footer .sep{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.15)}
+
+/* ============================================================
+   REVEAL
+   ============================================================ */
+body.js [data-reveal]{opacity:0}
+body.js [data-reveal].in{animation:riseIn .95s var(--ease) forwards;animation-delay:var(--d,0s)}
+@keyframes riseIn{
+  from{opacity:0;transform:translateY(20px);filter:blur(6px)}
+  to{opacity:1;transform:none;filter:blur(0)}
+}
+
+/* focus */
+:focus-visible{outline:2px solid rgba(212,175,55,.65);outline-offset:2px;border-radius:6px}
+
+/* 静态快照模式 (#static)：禁用全部动效 */
+.static [data-reveal]{opacity:1!important;animation:none!important;filter:none!important}
+.static .spark .ln{stroke-dashoffset:0!important;animation:none!important}
+.static .split-bars .fill{transform:scaleX(1)!important;transition:none!important}
+.static .gauge-fill{transition:none!important}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important}
+  body.js [data-reveal]{opacity:1}
+}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div class="aurora" aria-hidden="true"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
+<div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+<!-- ================= HEADER ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 20h18M6 20V9M11 20V4M16 20v-7M21 20V12"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">
+          QQQ × SPY 历轮熊市回撤终端
+          <span class="chip">GOLD DESK v5.0</span>
+        </div>
+        <div class="brand-sub">US Equity Regime Analytics · 跨周期风险定价</div>
+      </div>
+    </div>
+
+    <div class="top-right">
+      <div class="live">
+        <span class="dot"></span>
+        <b>LIVE</b>
+        <span>2026-11-20 收盘</span>
+      </div>
+      <div class="seg" role="group" aria-label="回撤计算口径">
+        <button id="btnClose" class="active" onclick="setMode('close')">收盘价口径</button>
+        <button id="btnIntra" onclick="setMode('intraday')">2026 Q4 盘中极值</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="filterbar">
+    <div class="tabs" id="filterTabs">
+      <button class="tab active" data-filter="all" onclick="setFilter('all')">全部周期 · 7 轮</button>
+      <button class="tab" data-filter="systemic" onclick="setFilter('systemic')">极端系统性危机</button>
+      <button class="tab" data-filter="valuation" onclick="setFilter('valuation')">加息 / 估值杀跌</button>
+      <button class="tab" data-filter="q4" onclick="setFilter('q4')"><span class="pulse"></span>2026 Q4 实时跟踪</button>
+    </div>
+    <div class="legend">
+      <span><i class="sw q"></i>QQQ 纳指100</span>
+      <span><i class="sw s"></i>SPY 标普500</span>
+      <span><i class="sw bear"></i>-20% 熊市线</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= TICKER ================= -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<main class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div data-reveal style="--d:.02s">
+      <div class="eyebrow"><span class="rule"></span>Regime Drawdown Matrix</div>
+      <h1>
+        历轮熊市 · 深度回撤
+        <span class="line2">QQQ 与 SPY 的风险定价差</span>
+      </h1>
+      <p class="lede">
+        以 2000 年互联网泡沫至今 <b>7 轮</b>系统性回撤为样本，逐轮拆解纳斯达克100 与标普500 的
+        <b>跌幅剪刀差、见底时长与回本周期</b>；并对 1x / 2x / 3x 杠杆产品做路径依赖压力测试。
+      </p>
+      <div class="hero-stats">
+        <div class="hs"><div class="hs-k">样本区间</div><div class="hs-v">2000 — 2026</div></div>
+        <div class="hs"><div class="hs-k">危机轮次</div><div class="hs-v">7 Rounds</div></div>
+        <div class="hs"><div class="hs-k">当前状态</div><div class="hs-v" style="color:var(--rose-soft)">临界熊市</div></div>
+      </div>
+    </div>
+
+    <div class="gauge-card" data-reveal style="--d:.12s">
+      <div class="gauge-head">
+        <span>QQQ Drawdown Depth</span>
+        <span id="gaugePct" style="color:var(--gold-2)">79.6%</span>
+      </div>
+      <div class="gauge-wrap">
+        <svg class="gauge" viewBox="0 0 200 200" aria-hidden="true">
+          <defs>
+            <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#FBF1D0"/>
+              <stop offset="46%" stop-color="#D4AF37"/>
+              <stop offset="100%" stop-color="#FF4D5F"/>
+            </linearGradient>
+          </defs>
+          <circle class="gauge-track" cx="100" cy="100" r="78"/>
+          <circle class="gauge-fill" id="gaugeFill" cx="100" cy="100" r="78"/>
+          <g id="gaugeMarker">
+            <line class="gauge-marker" x1="178" y1="100" x2="190" y2="100"/>
+          </g>
+        </svg>
+        <div class="gauge-center">
+          <div class="gc-v" id="gaugeValue">-19.90%</div>
+          <div class="gc-k" id="gaugeLabel">距熊市线 0.10%</div>
+        </div>
+      </div>
+      <div class="gauge-foot">
+        <div><span>QQQ 收盘</span><b id="gaugeQqq">$608.45</b></div>
+        <div><span>前高 10-06</span><b id="gaugePeak">$759.66</b></div>
+        <div class="r"><span>盘中低点</span><b id="gaugeLow">-20.53%</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= KPI ================= -->
+  <section class="kpis">
+    <article class="card kpi" data-reveal style="--d:.06s">
+      <div class="sheen"></div>
+      <div class="kpi-top">
+        <span class="kpi-label">2026 Q4 · QQQ 最大回撤</span>
+        <span class="tag rose" id="tagQqq">临界熊市 -20%</span>
+      </div>
+      <div class="kpi-mid">
+        <div class="kpi-val gold" id="kpiQqq">-19.90<span class="u">%</span></div>
+        <svg class="spark" viewBox="0 0 100 36" aria-hidden="true">
+          <defs>
+            <linearGradient id="sparkQ" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#D4AF37" stop-opacity=".30"/>
+              <stop offset="100%" stop-color="#D4AF37" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M0 4 L18 6 L34 11 L52 9 L68 18 L84 23 L100 34 L100 36 L0 36 Z" fill="url(#sparkQ)"/>
+          <path class="ln" d="M0 4 L18 6 L34 11 L52 9 L68 18 L84 23 L100 34" stroke="#D4AF37"/>
+          <circle cx="100" cy="34" r="2.6" fill="#FF4D5F"/>
+        </svg>
+      </div>
+      <div class="kpi-sub" id="subQqq">
+        收盘 <span class="hl">$759.66</span> → <span class="r">$608.45</span><br>
+        盘中最低 $606.23 达 <span class="r">-20.53%</span>
+      </div>
+    </article>
+
+    <article class="card kpi" data-reveal style="--d:.12s">
+      <div class="sheen"></div>
+      <div class="kpi-top">
+        <span class="kpi-label">2026 Q4 · SPY 最大回撤</span>
+        <span class="tag teal">相对抗跌缓冲</span>
+      </div>
+      <div class="kpi-mid">
+        <div class="kpi-val teal" id="kpiSpy">-11.46<span class="u">%</span></div>
+        <svg class="spark" viewBox="0 0 100 36" aria-hidden="true">
+          <defs>
+            <linearGradient id="sparkS" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#2FD8A8" stop-opacity=".28"/>
+              <stop offset="100%" stop-color="#2FD8A8" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M0 6 L20 7 L38 10 L55 8 L72 13 L86 16 L100 22 L100 36 L0 36 Z" fill="url(#sparkS)"/>
+          <path class="ln" d="M0 6 L20 7 L38 10 L55 8 L72 13 L86 16 L100 22" stroke="#2FD8A8"/>
+          <circle cx="100" cy="22" r="2.6" fill="#2FD8A8"/>
+        </svg>
+      </div>
+      <div class="kpi-sub" id="subSpy">
+        收盘 <span class="hl">$779.09</span> → <span class="t" style="color:var(--teal-soft)">$689.81</span><br>
+        盘中最低 $686.76 达 <span style="color:#F0B429">-12.14%</span>
+      </div>
+    </article>
+
+    <article class="card kpi" data-reveal style="--d:.18s">
+      <div class="sheen"></div>
+      <div class="kpi-top">
+        <span class="kpi-label">2026 Q4 · 相对剪刀差</span>
+        <span class="tag gold">结构性分化</span>
+      </div>
+      <div class="kpi-mid">
+        <div class="kpi-val gold" id="kpiSpread">-8.44<span class="u">%</span></div>
+        <div class="split-bars">
+          <div class="track"><div class="fill fq" style="width:78%"></div></div>
+          <div class="track"><div class="fill fs" style="width:45%"></div></div>
+        </div>
+      </div>
+      <div class="kpi-sub" id="subSpread">
+        科技权重集中抛售，尚未演变为<br>全市场流动性踩踏
+      </div>
+    </article>
+
+    <article class="card kpi" data-reveal style="--d:.24s">
+      <div class="sheen"></div>
+      <div class="kpi-top">
+        <span class="kpi-label">历史常规熊市均值 (剔除 2000)</span>
+        <span class="tag gold">5 轮均值</span>
+      </div>
+      <div class="kpi-mid">
+        <div class="kpi-val white">
+          <span style="color:var(--gold-2)">-32.74%</span>
+          <span class="vs">vs</span>
+          <span style="color:var(--teal)">-30.64%</span>
+        </div>
+      </div>
+      <div class="kpi-sub">
+        当前 QQQ <span class="g">-19.90%</span> 已走完 2018 / 2025<br>
+        中度熊市约 <span class="g">85%</span> 的下跌空间
+      </div>
+    </article>
+  </section>
+
+  <!-- ================= CHART + SIDE ================= -->
+  <section class="main-grid">
+    <div class="card chart-card" data-reveal style="--d:.08s">
+      <div class="sheen"></div>
+      <div class="panel-head">
+        <div>
+          <div class="panel-title"><span class="bar-mark"></span>历轮熊市最大回撤对比 · 2000 – 2026 Q4</div>
+          <div class="panel-desc">悬停查看精确点位与剪刀差；点击任意柱体联动右侧标尺、压力测试与底部解剖</div>
+        </div>
+        <div class="chart-tag" id="chartTag">口径：收盘价最大回撤</div>
+      </div>
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="chartCanvas"></canvas>
+      </div>
+    </div>
+
+    <div class="card side-card" data-reveal style="--d:.14s">
+      <div class="sheen"></div>
+      <div>
+        <div class="panel-head" style="margin-bottom:12px">
+          <div>
+            <div class="panel-title"><span class="bar-mark" style="background:linear-gradient(180deg,#FF8794,#7A2029)"></span>QQQ 回撤深度标尺</div>
+            <div class="panel-desc">自浅至深排序 · 竖线为 -20% 技术性熊市阈值</div>
+          </div>
+        </div>
+        <div class="gauge-list" id="gaugeList"></div>
+      </div>
+
+      <div class="stress">
+        <div class="stress-hd">
+          <div>
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+              杠杆回撤压力测试
+            </h3>
+            <p>1x QQQ / 2x QLD / 3x TQQQ 的路径依赖损耗</p>
+          </div>
+          <select id="regimeSelect" onchange="selectRegime(this.value)"></select>
+        </div>
+
+        <div class="levs">
+          <div class="lev l1">
+            <div class="k">1x QQQ</div>
+            <div class="v" id="lev1">-19.90%</div>
+            <div class="r" id="lev1r">回本 +24.8%</div>
+          </div>
+          <div class="lev l2">
+            <div class="k">2x QLD</div>
+            <div class="v" id="lev2">-37.80%</div>
+            <div class="r" id="lev2r">回本 +60.8%</div>
+          </div>
+          <div class="lev l3">
+            <div class="k">3x TQQQ</div>
+            <div class="v" id="lev3">-53.70%</div>
+            <div class="r" id="lev3r">回本 +116.0%</div>
+          </div>
+        </div>
+
+        <div class="stress-foot">
+          <span>见底耗时 <b id="sDur">45 天 (进行中)</b></span>
+          <span>历史回本 <b id="sRec" style="color:#F0B429">尚未见底</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MATRIX ================= -->
+  <section class="card matrix" data-reveal style="--d:.1s">
+    <div class="sheen"></div>
+    <div class="matrix-hd">
+      <div>
+        <div class="panel-title"><span class="bar-mark" style="background:linear-gradient(180deg,#8FEBD4,#146B58)"></span>全维度回撤数据矩阵</div>
+        <div class="panel-desc" style="margin-top:4px">点击行展开「周期深度解剖」，点击表头数值列可按跌幅或剪刀差排序</div>
+      </div>
+      <div class="sort-group">
+        <span class="lab">SORT BY</span>
+        <button class="sbtn active" data-sort="chrono" onclick="sortBy('chrono')">时间顺序</button>
+        <button class="sbtn" data-sort="qqq" onclick="sortBy('qqq')">QQQ 跌幅</button>
+        <button class="sbtn" data-sort="spy" onclick="sortBy('spy')">SPY 跌幅</button>
+        <button class="sbtn" data-sort="diff" onclick="sortBy('diff')">剪刀差</button>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:24%">周期 / 危机事件</th>
+            <th style="width:16%">时间区间 (高 → 低)</th>
+            <th class="num" style="width:11%" onclick="sortBy('qqq')">QQQ 跌幅 ↕</th>
+            <th class="num" style="width:11%" onclick="sortBy('spy')">SPY 跌幅 ↕</th>
+            <th class="num" style="width:12%" onclick="sortBy('diff')">剪刀差 ↕</th>
+            <th style="width:13%">驱动标签</th>
+            <th style="width:13%">回本 / 特征</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="inspector">
+      <div>
+        <span class="insp-label">REGIME DEEP-DIVE</span>
+        <div class="insp-title-row">
+          <h3 class="insp-title" id="inspTitle">2026 年四季度半导体 / 科技回调</h3>
+          <span class="insp-date" id="inspDate">2026-10-06 → 2026-11-20</span>
+        </div>
+        <p class="insp-desc" id="inspDesc"></p>
+      </div>
+      <div class="insp-stats">
+        <div>
+          <div class="k">高点→低点耗时</div>
+          <div class="v" id="inspDur">45 天 (进行中)</div>
+        </div>
+        <div>
+          <div class="k">重回前高</div>
+          <div class="v gold" id="inspRec">尚未见底</div>
+        </div>
+        <div>
+          <div class="k">板块轮动</div>
+          <div class="v teal" id="inspRot">AI 杀估值</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= INSIGHTS ================= -->
+  <section class="insights">
+    <article class="card insight" data-reveal style="--d:.06s">
+      <div class="sheen"></div>
+      <div class="idx">01 · 宏观驱动</div>
+      <h3>利率 / 估值杀跌 vs 系统性危机的结构分化</h3>
+      <p>
+        估值泡沫出清型熊市（2000、2022、2026 Q4），长久期科技股现金流折现首当其冲，QQQ 多跌
+        <b>8% – 34%</b>；而金融或外生冲击型危机（2008、2020），QQQ 不含银行股且现金流稳健，
+        反而少跌 <b>1.8% – 5.3%</b>。
+      </p>
+    </article>
+
+    <article class="card insight" data-reveal style="--d:.12s">
+      <div class="sheen"></div>
+      <div class="idx">02 · 当前定价</div>
+      <h3>盘中已破 -20% 熊市线，SPY 仍留缓冲</h3>
+      <p>
+        截至 2026-11-20，QQQ 收盘回撤 <span class="r">-19.90%</span>（盘中 <span class="r">-20.53%</span>），
+        距收盘步入技术性熊市仅差不足 1 美元；SPY 仅 <span class="t">-11.46%</span>，
+        尚无全市场流动性踩踏特征。
+      </p>
+    </article>
+
+    <article class="card insight" data-reveal style="--d:.18s">
+      <div class="sheen"></div>
+      <div class="idx">03 · 杠杆边界</div>
+      <h3>常规熊市锚点与杠杆损耗规律</h3>
+      <p>
+        剔除 2000 年极端泡沫后，QQQ 回撤集中于 <b>-23% ~ -53%</b>。中度熊市通常 3–4 个月收复；
+        但 3x 杠杆即便在 -23% 级别回调中，也会承受超 <span class="r">-60%</span> 的波动率损耗。
+      </p>
+    </article>
+  </section>
+
+  <footer>
+    <div class="fl">
+      <span>OBSIDIAN GOLD TERMINAL</span>
+      <span class="sep"></span>
+      <span>DATA AS OF 2026-11-20</span>
+      <span class="sep"></span>
+      <span>7 REGIMES · 2000—2026</span>
+    </div>
+    <span>历史回测仅供研究 · 不构成投资建议</span>
+  </footer>
+</main>
+
+<!-- ================= TOOLTIP ================= -->
+<div class="tt" id="tt" role="tooltip" aria-hidden="true">
+  <div class="tt-title" id="ttTitle"></div>
+  <div class="tt-date" id="ttDate"></div>
+  <div class="tt-row"><span class="k"><i class="sw q" style="width:7px;height:7px"></i>QQQ 回撤</span><span class="v q" id="ttQ"></span></div>
+  <div class="tt-row"><span class="k"><i class="sw s" style="width:7px;height:7px"></i>SPY 回撤</span><span class="v s" id="ttS"></span></div>
+  <div class="tt-row" style="border-top:1px solid rgba(255,255,255,.07);margin-top:5px;padding-top:6px">
+    <span class="k">剪刀差 QQQ−SPY</span><span class="v" id="ttD"></span>
+  </div>
+  <div class="tt-note" id="ttNote"></div>
+</div>
+
+<script>
+document.body.classList.add('js');
+if(location.hash.includes('static')) document.documentElement.classList.add('static');
+
+/* ============================================================
+   1. DATA
+   ============================================================ */
+const DATA = [
+  {
+    id:'dotcom', order:1,
+    short:'2000 互联网泡沫', name:'互联网泡沫破裂',
+    period:'2000-03 → 2002-10',
+    cat:'valuation', catLabel:'极端估值泡沫出清', tone:'gold',
+    qc:-82.96, sc:-49.10, qi:-82.96, si:-49.10,
+    dur:'约 31 个月 (945 天)', rec:'QQQ ~15 年 / SPY ~7 年', rot:'科技极端泡沫破裂',
+    summary:'纳斯达克科技股极端估值泡沫彻底出清；QQQ 最大回撤高达 -82.96%，耗时近 15 年（直至 2015 年）才重回前高；SPY 跌幅 -49.10%，约 7 年回本。'
+  },
+  {
+    id:'gfc', order:2,
+    short:'2008 全球金融危机', name:'全球金融危机 (GFC)',
+    period:'2007-10 → 2009-03',
+    cat:'systemic', catLabel:'系统性金融危机', tone:'rose',
+    qc:-53.40, sc:-55.19, qi:-53.40, si:-55.19,
+    dur:'约 17 个月 (517 天)', rec:'SPY ~5.4 年 / QQQ ~3.8 年', rot:'金融地产重创',
+    summary:'次贷危机引发全球系统性银行流动性危机，金融与地产板块遭受毁灭性打击；QQQ 因不含金融银行股，回撤 (-53.40%) 略抗跌于 SPY (-55.19%)。'
+  },
+  {
+    id:'fed2018', order:3,
+    short:'2018 加息缩表急跌', name:'2018 年末加息缩表急跌',
+    period:'2018-09 → 2018-12',
+    cat:'valuation', catLabel:'加息缩表 / 贸易摩擦', tone:'gold',
+    qc:-23.20, sc:-19.80, qi:-23.20, si:-19.80,
+    dur:'约 3.5 个月 (105 天)', rec:'约 4 个月收复前高', rot:'成长杀估值 / 政策 V 反',
+    summary:'美联储持续加息缩表叠加中美贸易摩擦升级，美股在 2018 年四季度急跌并于平安夜触底；随后政策迅速转鸽，两者均在约 4 个月内收复全部失地。'
+  },
+  {
+    id:'covid', order:4,
+    short:'2020 新冠熔断', name:'新冠疫情熔断 (COVID-19)',
+    period:'2020-02 → 2020-03',
+    cat:'systemic', catLabel:'外生公共卫生冲击', tone:'rose',
+    qc:-28.60, sc:-33.90, qi:-28.60, si:-33.90,
+    dur:'33 个自然日 (史上最快)', rec:'QQQ <3 个月 / SPY ~5 个月', rot:'实体停摆 / 居家科技',
+    summary:'史上最快熊市（约 1 个月即触底）；实体停摆重创航空、能源与金融，而科技龙头受益于居家办公浪潮，QQQ 少跌 5.30%，不到 3 个月即创历史新高。'
+  },
+  {
+    id:'infl2022', order:5,
+    short:'2022 高通胀加息', name:'2022 年高通胀加息熊市',
+    period:'2021-11 → 2022-10',
+    cat:'valuation', catLabel:'激进加息杀估值', tone:'gold',
+    qc:-35.60, sc:-25.40, qi:-35.60, si:-25.40,
+    dur:'约 10–11 个月', rec:'QQQ ~1 年 / SPY ~2 年', rot:'长久期成长领跌',
+    summary:'40 年高通胀迫使美联储激进加息 425bp，无风险利率飙升压缩长久期成长股估值，QQQ 较 SPY 多跌 10.20%；随 AI 浪潮与通胀回落，QQQ 约 1 年收复失地。'
+  },
+  {
+    id:'tariff2025', order:6,
+    short:'2025 关税冲击', name:'2025 年初关税政策冲击',
+    period:'2025-02 → 2025-04',
+    cat:'valuation', catLabel:'关税贸易战 / 估值回调', tone:'gold',
+    qc:-22.90, sc:-18.90, qi:-25.40, si:-21.40,
+    dur:'约 7 周 (49 天)', rec:'约 4 个月 V 型反转', rot:'供应链承压 / AI 修复',
+    summary:'关税与贸易政策不确定性引发恐慌性急跌（约 7 周触底，盘中极值更深）；随后大型科技股 AI 盈利兑现，驱动市场在约 4 个月内完成 V 型反转并创新高。'
+  },
+  {
+    id:'q42026', order:7,
+    short:'2026 Q4 科技回调', name:'2026 年四季度半导体 / 科技回调',
+    period:'2026-10-06 → 2026-11-20',
+    cat:'q4', catLabel:'AI / 芯片杀估值 [实时]', tone:'rose',
+    qc:-19.90, sc:-11.46, qi:-20.53, si:-12.14,
+    dur:'45 个自然日 (进行中)', rec:'尚未见底 (临界)', rot:'芯片 AI 抛售',
+    summary:'11 月 20 日 QQQ 单日暴跌 -5.67%（收盘 $608.45），自 10 月 6 日高点（$759.66）回撤达 -19.90%；盘中最低 $606.23（-20.53%）已刺穿技术性熊市线，SPY 仅跌 -11.46%，尚未演变为全市场流动性踩踏。',
+    isCurrent:true
+  }
+];
+
+/* ============================================================
+   2. STATE
+   ============================================================ */
+const state = { mode:'close', filter:'all', sort:'chrono', sel:'q42026', hover:-1, prog:0 };
+let hits = [];
+
+/* ============================================================
+   3. HELPERS
+   ============================================================ */
+const $ = id => document.getElementById(id);
+
+function vals(d){
+  const q = state.mode === 'intraday' ? d.qi : d.qc;
+  const s = state.mode === 'intraday' ? d.si : d.sc;
+  return { q, s, d:+(q - s).toFixed(2) };
+}
+function pct(v, dec=2){ return (v>0?'+':'') + v.toFixed(dec) + '%'; }
+
+function visible(){
+  let list = DATA.slice();
+  if(state.filter==='systemic') list = list.filter(d=>d.cat==='systemic');
+  if(state.filter==='valuation') list = list.filter(d=>d.cat==='valuation' || d.id==='q42026');
+  if(state.filter==='q4') list = list.filter(d=>['q42026','fed2018','tariff2025'].includes(d.id));
+  const m = { qqq:(a,b)=>vals(a).q - vals(b).q,
+              spy:(a,b)=>vals(a).s - vals(b).s,
+              diff:(a,b)=>vals(a).d - vals(b).d }[state.sort];
+  list.sort(m || ((a,b)=>a.order-b.order));
+  return list;
+}
+
+/* 数字滚动 */
+function countTo(el, to, dec=2, pre='', suf='%'){
+  const from = parseFloat(el.dataset.v ?? to);
+  el.dataset.v = to;
+  const t0 = performance.now(), dur = 760;
+  function step(t){
+    const k = Math.min(1,(t-t0)/dur), e = 1-Math.pow(1-k,3);
+    const v = from + (to-from)*e;
+    el.textContent = pre + v.toFixed(dec) + suf;
+    if(k<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============================================================
+   4. RENDER — HERO GAUGE
+   ============================================================ */
+const C = 2*Math.PI*78;           // 490.09
+const SCALE = 25;                 // 满圈代表 -25%
+
+function renderGauge(){
+  const d = DATA.find(x=>x.id==='q42026');
+  const q = state.mode==='intraday' ? d.qi : d.qc;
+  const s = state.mode==='intraday' ? d.si : d.sc;
+  const depth = Math.abs(q);
+  const ratio = Math.min(1, depth/SCALE * 0.995);
+
+  $('gaugeFill').style.strokeDashoffset = C * (1 - ratio);
+  $('gaugeValue').textContent = q.toFixed(2) + '%';
+  const gap = Math.abs(depth) - 20;
+  $('gaugeLabel').textContent = gap >= 0
+    ? '已破熊市线 ' + gap.toFixed(2) + '%'
+    : '距熊市线 ' + Math.abs(gap).toFixed(2) + '%';
+  $('gaugePct').textContent = (ratio*100).toFixed(1) + '%';
+  $('gaugeQqq').textContent = state.mode==='intraday' ? '$606.23' : '$608.45';
+  $('gaugeLow').textContent = q.toFixed(2) + '%';
+
+  // -20% 刻度标记
+  const ang = (20/SCALE) * 360;
+  $('gaugeMarker').setAttribute('transform', `rotate(${ang} 100 100)`);
+
+  // KPI
+  countTo($('kpiQqq'), q, 2, '', '%');
+  countTo($('kpiSpy'), s, 2, '', '%');
+  countTo($('kpiSpread'), +(q-s).toFixed(2), 2, '', '%');
+
+  $('tagQqq').textContent = state.mode==='intraday' ? '盘中已破 -20%' : '临界熊市 -20%';
+  $('subQqq').innerHTML = state.mode==='intraday'
+    ? '盘中最低 <span class="hl">$606.23</span> → <span class="r">-20.53%</span><br>收盘 $608.45 收于熊市线之上'
+    : '收盘 <span class="hl">$759.66</span> → <span class="r">$608.45</span><br>盘中最低 $606.23 达 <span class="r">-20.53%</span>';
+  $('subSpy').innerHTML = state.mode==='intraday'
+    ? '盘中最低 <span class="hl">$686.76</span> → <span style="color:#F0B429">-12.14%</span><br>传统价值板块形成对冲'
+    : '收盘 <span class="hl">$779.09</span> → <span style="color:var(--teal-soft)">$689.81</span><br>盘中最低 $686.76 达 <span style="color:#F0B429">-12.14%</span>';
+  $('chartTag').textContent = state.mode==='intraday' ? '口径：2026 Q4 / 2025 盘中极值' : '口径：收盘价最大回撤';
+}
+
+/* ============================================================
+   5. DEPTH GAUGE LIST
+   ============================================================ */
+function renderDepth(){
+  const list = DATA.slice().sort((a,b)=>Math.abs(vals(a).q)-Math.abs(vals(b).q));
+  $('gaugeList').innerHTML = list.map(d=>{
+    const {q} = vals(d);
+    const abs = Math.abs(q);
+    const w = Math.min(100, abs/85*100);
+    const active = d.id === state.sel;
+    const deep = abs>=50 ? 'deep' : (d.isCurrent ? 'cur' : '');
+    return `
+      <div class="grow ${active?'active':''} ${d.isCurrent?'cur':''}" role="button" tabindex="0"
+           onclick="selectRegime('${d.id}')" onkeydown="if(event.key==='Enter')selectRegime('${d.id}')">
+        <div class="grow-hd">
+          <span class="grow-name">${d.isCurrent?'<i class="now"></i>':''}${d.short}</span>
+          <span class="grow-val">${q.toFixed(2)}%</span>
+        </div>
+        <div class="track">
+          <span class="bearline" style="left:${(20/85*100).toFixed(2)}%"></span>
+          <div class="fill ${deep}" style="width:${w}%"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ============================================================
+   6. STRESS TEST
+   ============================================================ */
+function fillSelect(){
+  $('regimeSelect').innerHTML = DATA.map(d=>`<option value="${d.id}">${d.short}</option>`).join('');
+  $('regimeSelect').value = state.sel;
+}
+
+function renderStress(){
+  const d = DATA.find(x=>x.id===state.sel) || DATA[6];
+  const {q} = vals(d);
+  const a = Math.abs(q)/100;
+  const d1 = a;
+  const d2 = Math.min(0.992, 1-Math.pow(1-a,1.92));
+  const d3 = Math.min(0.999, 1-Math.pow(1-a,2.78));
+  const rec = x => ((1/(1-x))-1)*100;
+
+  $('lev1').textContent = '-'+(d1*100).toFixed(2)+'%';
+  $('lev1r').textContent = '回本 +'+rec(d1).toFixed(1)+'%';
+  $('lev2').textContent = '-'+(d2*100).toFixed(2)+'%';
+  $('lev2r').textContent = '回本 +'+rec(d2).toFixed(1)+'%';
+  $('lev3').textContent = '-'+(d3*100).toFixed(2)+'%';
+  $('lev3r').textContent = rec(d3)>500 ? '接近清零' : '回本 +'+rec(d3).toFixed(0)+'%';
+
+  $('sDur').textContent = d.dur;
+  $('sRec').textContent = d.rec;
+}
+
+/* ============================================================
+   7. TABLE + INSPECTOR
+   ============================================================ */
+function renderTable(){
+  const list = visible();
+  $('tbody').innerHTML = list.map(d=>{
+    const {q,s,d:df} = vals(d);
+    const sel = d.id===state.sel;
+    return `
+      <tr class="${sel?'selected':''}" tabindex="0" onclick="selectRegime('${d.id}')"
+          onkeydown="if(event.key==='Enter')selectRegime('${d.id}')">
+        <td>
+          <div class="cell-name">${d.isCurrent?'<i class="now"></i>':'<i class="idle"></i>'}${d.name}</div>
+        </td>
+        <td class="cell-period">${d.period}</td>
+        <td class="num q">${q.toFixed(2)}%</td>
+        <td class="num s">${s.toFixed(2)}%</td>
+        <td class="num d ${df>0?'pos':''}">${df>0?'+':''}${df.toFixed(2)}%</td>
+        <td><span class="tag ${d.tone==='rose'?'rose':'gold'}">${d.catLabel}</span></td>
+        <td><div class="cell-meta"><b>${d.rec}</b><br>${d.rot}</div></td>
+      </tr>`;
+  }).join('');
+}
+
+function renderInspector(){
+  const d = DATA.find(x=>x.id===state.sel) || DATA[6];
+  $('inspTitle').textContent = d.name + (d.isCurrent ? ' [进行中]' : '');
+  $('inspDate').textContent = d.period;
+  $('inspDesc').textContent = d.summary;
+  $('inspDur').textContent = d.dur;
+  $('inspRec').textContent = d.rec;
+  $('inspRot').textContent = d.rot;
+}
+
+/* ============================================================
+   8. CONTROLS
+   ============================================================ */
+function setMode(m){
+  state.mode = m;
+  $('btnClose').classList.toggle('active', m==='close');
+  $('btnIntra').classList.toggle('active', m==='intraday');
+  renderGauge(); renderDepth(); renderStress(); renderTable(); animateChart();
+}
+
+function setFilter(f){
+  state.filter = f;
+  document.querySelectorAll('#filterTabs .tab').forEach(b=>{
+    b.classList.toggle('active', b.dataset.filter===f);
+  });
+  const list = visible();
+  if(!list.some(d=>d.id===state.sel) && list.length) state.sel = list[list.length-1].id;
+  renderDepth(); renderStress(); renderTable(); renderInspector(); animateChart();
+}
+
+function sortBy(k){
+  state.sort = k;
+  document.querySelectorAll('.sbtn').forEach(b=>b.classList.toggle('active', b.dataset.sort===k));
+  renderTable(); animateChart();
+}
+
+function selectRegime(id){
+  state.sel = id;
+  $('regimeSelect').value = id;
+  renderDepth(); renderStress(); renderTable(); renderInspector(); drawChart();
+}
+
+/* ============================================================
+   9. CANVAS CHART
+   ============================================================ */
+const cv = $('chartCanvas'), ctx = cv.getContext('2d');
+
+function animateChart(){
+  state.prog = 0;
+  const t0 = performance.now(), dur = 720;
+  function step(t){
+    const k = Math.min(1,(t-t0)/dur);
+    state.prog = 1 - Math.pow(1-k,4);
+    drawChart();
+    if(k<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function roundTop(x,y,w,h,r){
+  r = Math.min(r,h);
+  ctx.beginPath();
+  ctx.moveTo(x,y+h);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h);
+  ctx.closePath();
+}
+
+function drawChart(){
+  const wrap = $('canvasWrap');
+  const r = wrap.getBoundingClientRect();
+  if(!r.width) return;
+  const dpr = Math.min(window.devicePixelRatio||1, 2);
+  cv.width = r.width*dpr; cv.height = r.height*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W = r.width, H = r.height;
+  ctx.clearRect(0,0,W,H);
+
+  const data = visible();
+  const padL=46, padR=16, padT=28, padB=58;
+  const cw = W-padL-padR, ch = H-padT-padB;
+  const MAX = 90;
+  const y = v => padT + (v/MAX)*ch;
+
+  /* 网格 */
+  ctx.font = '500 10px "JetBrains Mono", monospace';
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  [0,20,40,60,80].forEach(t=>{
+    const yy = y(t);
+    ctx.beginPath();
+    ctx.moveTo(padL, yy); ctx.lineTo(W-padR, yy);
+    if(t===20){
+      ctx.strokeStyle='rgba(255,77,95,.55)';
+      ctx.lineWidth=1.2; ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle='rgba(255,135,148,.9)';
+      ctx.fillText('-20%', padL-8, yy);
+      ctx.textAlign='left';
+      ctx.font='600 9.5px "Inter", sans-serif';
+      ctx.fillStyle='rgba(255,135,148,.75)';
+      ctx.fillText('技术性熊市阈值', padL+6, yy-11);
+      ctx.textAlign='right';
+      ctx.font='500 10px "JetBrains Mono", monospace';
+    }else{
+      ctx.strokeStyle = t===0 ? 'rgba(255,255,255,.14)' : 'rgba(255,255,255,.05)';
+      ctx.lineWidth=1; ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,.28)';
+      ctx.fillText(t===0?'0%':'-'+t+'%', padL-8, yy);
+    }
+  });
+
+  /* 柱体 */
+  hits = [];
+  const n = data.length;
+  const gw = cw/n;
+  const bw = Math.min(24, Math.max(10, gw*0.24));
+  const gap = Math.min(7, bw*0.32);
+
+  data.forEach((d,i)=>{
+    const {q,s} = vals(d);
+    const aq = Math.abs(q)*state.prog;
+    const as = Math.abs(s)*state.prog;
+    const cx = padL + gw*i + gw/2;
+    const xq = cx - bw - gap/2;
+    const xs = cx + gap/2;
+    const hq = (aq/MAX)*ch;
+    const hs = (as/MAX)*ch;
+
+    const hov = state.hover===i;
+    const sel = d.id===state.sel;
+
+    if(hov || sel){
+      ctx.fillStyle = sel ? 'rgba(212,175,55,.07)' : 'rgba(255,255,255,.035)';
+      ctx.beginPath();
+      ctx.roundRect(padL+gw*i+5, padT-6, gw-10, ch+50, 9);
+      ctx.fill();
+      if(sel){
+        ctx.strokeStyle='rgba(212,175,55,.20)';
+        ctx.lineWidth=1; ctx.stroke();
+      }
+    }
+
+    /* QQQ 柱 */
+    const gq = ctx.createLinearGradient(0,padT,0,padT+hq);
+    if(d.isCurrent){ gq.addColorStop(0,'#FBF1D0'); gq.addColorStop(.45,'#E8C87E'); gq.addColorStop(1,'#FF4D5F'); }
+    else { gq.addColorStop(0,'#FBF1D0'); gq.addColorStop(.45,'#D4AF37'); gq.addColorStop(1,'#6E5316'); }
+    ctx.save();
+    if(sel){ ctx.shadowColor='rgba(212,175,55,.55)'; ctx.shadowBlur=16; }
+    ctx.fillStyle=gq; roundTop(xq,padT,bw,hq,4); ctx.fill();
+    ctx.restore();
+
+    /* 柱顶高光 */
+    if(hq>3){
+      ctx.fillStyle='rgba(255,247,224,.85)';
+      ctx.beginPath(); ctx.roundRect(xq, padT-1, bw, 1.6, 1); ctx.fill();
+    }
+
+    /* SPY 柱 */
+    const gs = ctx.createLinearGradient(0,padT,0,padT+hs);
+    gs.addColorStop(0,'#A9F2DF'); gs.addColorStop(.5,'#2FD8A8'); gs.addColorStop(1,'#146B58');
+    ctx.save();
+    if(sel){ ctx.shadowColor='rgba(47,216,168,.35)'; ctx.shadowBlur=12; }
+    ctx.fillStyle=gs; roundTop(xs,padT,bw,hs,4); ctx.fill();
+    ctx.restore();
+
+    /* 数值标签 */
+    if(state.prog>0.62){
+      const alpha = (state.prog-0.62)/0.38;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.font='600 9.5px "JetBrains Mono", monospace';
+      ctx.textAlign='center';
+      ctx.fillStyle = d.isCurrent ? '#FF8794' : 'rgba(232,200,126,.85)';
+      ctx.fillText(q.toFixed(1), xq+bw/2, padT-9);
+      ctx.fillStyle='rgba(143,235,212,.8)';
+      ctx.fillText(s.toFixed(1), xs+bw/2, padT-9);
+      ctx.restore();
+    }
+
+    /* X 标签 */
+    const parts = d.short.split(' ');
+    const l1 = parts[0];
+    const l2 = parts.slice(1).join(' ');
+    ctx.textAlign='center';
+    ctx.font = (sel?'700 10.5px':'500 10.5px') + ' "PingFang SC","Microsoft YaHei","Inter",sans-serif';
+    ctx.fillStyle = d.isCurrent ? '#FF8794' : (sel?'#F5F6FA':'rgba(255,255,255,.42)');
+    ctx.fillText(l1, cx, H-padB+21);
+    if(l2){
+      ctx.font='400 9.5px "PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.fillStyle = d.isCurrent ? 'rgba(255,135,148,.75)' : 'rgba(255,255,255,.28)';
+      ctx.fillText(l2, cx, H-padB+35);
+    }
+
+    hits.push({ i, d, x:padL+gw*i, w:gw, y:padT-10, h:ch+56 });
+  });
+}
+
+/* ============================================================
+   10. CANVAS INTERACTION
+   ============================================================ */
+const tt = $('tt');
+function bindCanvas(){
+  cv.addEventListener('mousemove', e=>{
+    const r = cv.getBoundingClientRect();
+    const x = e.clientX-r.left, yy = e.clientY-r.top;
+    const hit = hits.find(b=>x>=b.x && x<=b.x+b.w && yy>=b.y && yy<=b.y+b.h);
+    if(hit){
+      if(state.hover!==hit.i){ state.hover=hit.i; drawChart(); }
+      const {q,s,d:df} = vals(hit.d);
+      $('ttTitle').textContent = hit.d.name;
+      $('ttDate').textContent = hit.d.period;
+      $('ttQ').textContent = q.toFixed(2)+'%';
+      $('ttS').textContent = s.toFixed(2)+'%';
+      const dEl = $('ttD');
+      dEl.textContent = (df>0?'+':'')+df.toFixed(2)+'%';
+      dEl.style.color = df>0 ? 'var(--teal-soft)' : 'var(--rose-soft)';
+      $('ttNote').textContent = hit.d.summary;
+      const tw=290, th=210;
+      let left = e.clientX+16, top = e.clientY-24;
+      if(left+tw > innerWidth-10) left = e.clientX-tw-16;
+      if(top+th > innerHeight-10) top = innerHeight-th-10;
+      if(top<10) top=10;
+      tt.style.left = left+'px'; tt.style.top = top+'px';
+      tt.classList.add('on');
+    }else{
+      if(state.hover!==-1){ state.hover=-1; drawChart(); }
+      tt.classList.remove('on');
+    }
+  });
+  cv.addEventListener('mouseleave', ()=>{ state.hover=-1; tt.classList.remove('on'); drawChart(); });
+  cv.addEventListener('click', e=>{
+    const r = cv.getBoundingClientRect();
+    const x = e.clientX-r.left, yy = e.clientY-r.top;
+    const hit = hits.find(b=>x>=b.x && x<=b.x+b.w && yy>=b.y && yy<=b.y+b.h);
+    if(hit) selectRegime(hit.d.id);
+  });
+  new ResizeObserver(()=>drawChart()).observe($('canvasWrap'));
+}
+
+/* ============================================================
+   11. TICKER
+   ============================================================ */
+function renderTicker(){
+  const items = [
+    ['QQQ 收盘','$608.45',''],
+    ['QQQ 回撤','-19.90%','up'],
+    ['SPY 收盘','$689.81',''],
+    ['SPY 回撤','-11.46%','down'],
+    ['剪刀差','-8.44%','up'],
+    ['QQQ 盘中','-20.53%','up'],
+    ['熊市阈值','-20.00%','g'],
+    ['历史均值 QQQ','-32.74%','g'],
+    ['历史均值 SPY','-30.64%','g'],
+    ['见底耗时','45 天',''],
+    ['样本轮次','7 Rounds',''],
+    ['更新','2026-11-20','']
+  ];
+  const html = items.map(([k,v,c])=>`<span class="tick"><span class="k">${k}</span><span class="v ${c}">${v}</span></span>`).join('');
+  $('tickerTrack').innerHTML = html + html;
+}
+
+/* ============================================================
+   12. MOTION — reveal / glow / progress
+   ============================================================ */
+function bindMotion(){
+  // 静态快照模式（用于生成预览图）：#static
+  if(location.hash.includes('static')){
+    document.querySelectorAll('[data-reveal]').forEach(el=>el.classList.add('in'));
+    return;
+  }
+  // 鼠标光斑
+  const glow = $('cursorGlow');
+  let tx=innerWidth/2, ty=innerHeight/2, gx=tx, gy=ty;
+  addEventListener('mousemove', e=>{ tx=e.clientX; ty=e.clientY; glow.classList.add('on'); }, {passive:true});
+  (function loop(){
+    gx += (tx-gx)*0.12; gy += (ty-gy)*0.12;
+    glow.style.transform = `translate3d(${gx}px,${gy}px,0)`;
+    requestAnimationFrame(loop);
+  })();
+
+  // 卡片内光斑
+  document.addEventListener('mousemove', e=>{
+    const c = e.target.closest && e.target.closest('.card');
+    if(!c) return;
+    const r = c.getBoundingClientRect();
+    c.style.setProperty('--mx', ((e.clientX-r.left)/r.width*100)+'%');
+    c.style.setProperty('--my', ((e.clientY-r.top)/r.height*100)+'%');
+  }, {passive:true});
+
+  // 滚动进度
+  addEventListener('scroll', ()=>{
+    const h = document.documentElement.scrollHeight - innerHeight;
+    $('scrollProgress').style.width = (h>0 ? scrollY/h*100 : 0) + '%';
+  }, {passive:true});
+
+  // 入场
+  const io = new IntersectionObserver((es)=>{
+    es.forEach(en=>{
+      if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, {threshold:.08, rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('[data-reveal]').forEach(el=>io.observe(el));
+}
+
+/* ============================================================
+   13. BOOT
+   ============================================================ */
+window.addEventListener('DOMContentLoaded', ()=>{
+  fillSelect();
+  renderTicker();
+  renderGauge();
+  renderDepth();
+  renderStress();
+  renderTable();
+  renderInspector();
+  bindCanvas();
+  bindMotion();
+  drawChart();
+  animateChart();
+  setTimeout(()=>drawChart(), 260);
+});
+</script>
+</body>
+</html>
