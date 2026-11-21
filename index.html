@@ -199,6 +199,13 @@ body::before{
   55%{opacity:.85;box-shadow:0 0 0 7px rgba(255,77,95,0)}
 }
 .live b{color:var(--rose-soft);font-weight:600;letter-spacing:.08em}
+.dot.ok{background:var(--teal);animation-name:beaconOk}
+@keyframes beaconOk{
+  0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(47,216,168,.6)}
+  55%{opacity:.85;box-shadow:0 0 0 7px rgba(47,216,168,0)}
+}
+.live.ok{border-color:rgba(47,216,168,.28);background:rgba(47,216,168,.06)}
+.live.ok b{color:var(--teal-soft)}
 
 /* 口径切换 */
 .seg{
@@ -712,10 +719,10 @@ body.js [data-reveal].in{animation:riseIn .95s var(--ease) forwards;animation-de
     </div>
 
     <div class="top-right">
-      <div class="live">
-        <span class="dot"></span>
-        <b>LIVE</b>
-        <span>2026-11-20 收盘</span>
+      <div class="live" id="liveBadge">
+        <span class="dot" id="liveDot"></span>
+        <b id="liveLabel">LIVE</b>
+        <span id="liveStamp">连接行情源…</span>
       </div>
       <div class="seg" role="group" aria-label="回撤计算口径">
         <button id="btnClose" class="active" onclick="setMode('close')">收盘价口径</button>
@@ -761,7 +768,7 @@ body.js [data-reveal].in{animation:riseIn .95s var(--ease) forwards;animation-de
       <div class="hero-stats">
         <div class="hs"><div class="hs-k">样本区间</div><div class="hs-v">2000 — 2026</div></div>
         <div class="hs"><div class="hs-k">危机轮次</div><div class="hs-v">7 Rounds</div></div>
-        <div class="hs"><div class="hs-k">当前状态</div><div class="hs-v" style="color:var(--rose-soft)">临界熊市</div></div>
+        <div class="hs"><div class="hs-k">当前状态</div><div class="hs-v" id="heroStatus" style="color:var(--rose-soft)">临界熊市</div></div>
       </div>
     </div>
 
@@ -1055,7 +1062,7 @@ body.js [data-reveal].in{animation:riseIn .95s var(--ease) forwards;animation-de
     <div class="fl">
       <span>OBSIDIAN GOLD TERMINAL</span>
       <span class="sep"></span>
-      <span>DATA AS OF 2026-11-20</span>
+      <span id="footLive">DATA AS OF 2026-11-20</span>
       <span class="sep"></span>
       <span>7 REGIMES · 2000—2026</span>
     </div>
@@ -1213,7 +1220,13 @@ function renderGauge(){
     ? '已破熊市线 ' + gap.toFixed(2) + '%'
     : '距熊市线 ' + Math.abs(gap).toFixed(2) + '%';
   $('gaugePct').textContent = (ratio*100).toFixed(1) + '%';
-  $('gaugeQqq').textContent = state.mode==='intraday' ? '$606.23' : '$608.45';
+  const ok = LIVE.ok && LIVE.q.qqq && LIVE.peakClose.qqq;
+  $('gaugeQqq').textContent = ok
+    ? '$' + LIVE.q.qqq.price.toFixed(2)
+    : (state.mode==='intraday' ? '$606.23' : '$608.45');
+  $('gaugePeak').textContent = ok
+    ? '$' + LIVE.peakClose.qqq.v.toFixed(2) + ' (' + LIVE.peakClose.qqq.d.slice(5) + ')'
+    : '$759.66';
   $('gaugeLow').textContent = q.toFixed(2) + '%';
 
   // -20% 刻度标记
@@ -1225,13 +1238,19 @@ function renderGauge(){
   countTo($('kpiSpy'), s, 2, '', '%');
   countTo($('kpiSpread'), +(q-s).toFixed(2), 2, '', '%');
 
+  const qq = ok ? LIVE.q.qqq : null;
+  const sp = ok ? LIVE.q.spy : null;
   $('tagQqq').textContent = state.mode==='intraday' ? '盘中已破 -20%' : '临界熊市 -20%';
-  $('subQqq').innerHTML = state.mode==='intraday'
-    ? '盘中最低 <span class="hl">$606.23</span> → <span class="r">-20.53%</span><br>收盘 $608.45 收于熊市线之上'
-    : '收盘 <span class="hl">$759.66</span> → <span class="r">$608.45</span><br>盘中最低 $606.23 达 <span class="r">-20.53%</span>';
-  $('subSpy').innerHTML = state.mode==='intraday'
-    ? '盘中最低 <span class="hl">$686.76</span> → <span style="color:#F0B429">-12.14%</span><br>传统价值板块形成对冲'
-    : '收盘 <span class="hl">$779.09</span> → <span style="color:var(--teal-soft)">$689.81</span><br>盘中最低 $686.76 达 <span style="color:#F0B429">-12.14%</span>';
+  $('subQqq').innerHTML = ok
+    ? `最新 <span class="hl">$${qq.price.toFixed(2)}</span> ← 峰值收盘 $${LIVE.peakClose.qqq.v.toFixed(2)}<br>当日盘中最低 $${qq.low.toFixed(2)} 较峰值高点 $${LIVE.peakHigh.qqq.v.toFixed(2)} 曾达 <span class="r">${d.qi.toFixed(2)}%</span>`
+    : (state.mode==='intraday'
+      ? '盘中最低 <span class="hl">$606.23</span> → <span class="r">-20.53%</span><br>收盘 $608.45 收于熊市线之上'
+      : '收盘 <span class="hl">$759.66</span> → <span class="r">$608.45</span><br>盘中最低 $606.23 达 <span class="r">-20.53%</span>');
+  $('subSpy').innerHTML = ok
+    ? `最新 <span class="hl">$${sp.price.toFixed(2)}</span> ← 峰值收盘 $${LIVE.peakClose.spy.v.toFixed(2)}<br>当日盘中最低 $${sp.low.toFixed(2)} 较峰值高点 $${LIVE.peakHigh.spy.v.toFixed(2)} 曾达 <span style="color:#F0B429">${d.si.toFixed(2)}%</span>`
+    : (state.mode==='intraday'
+      ? '盘中最低 <span class="hl">$686.76</span> → <span style="color:#F0B429">-12.14%</span><br>传统价值板块形成对冲'
+      : '收盘 <span class="hl">$779.09</span> → <span style="color:var(--teal-soft)">$689.81</span><br>盘中最低 $686.76 达 <span style="color:#F0B429">-12.14%</span>');
   $('chartTag').textContent = state.mode==='intraday' ? '口径：2026 Q4 / 2025 盘中极值' : '口径：收盘价最大回撤';
 }
 
@@ -1558,7 +1577,23 @@ function bindCanvas(){
    11. TICKER
    ============================================================ */
 function renderTicker(){
-  const items = [
+  const q4 = DATA.find(d=>d.id==='q42026');
+  const ok = LIVE.ok && LIVE.q.qqq;
+  const items = ok ? [
+    ['QQQ 最新', '$'+LIVE.q.qqq.price.toFixed(2), ''],
+    ['QQQ 回撤', q4.qc.toFixed(2)+'%', 'up'],
+    ['SPY 最新', '$'+LIVE.q.spy.price.toFixed(2), ''],
+    ['SPY 回撤', q4.sc.toFixed(2)+'%', 'down'],
+    ['剪刀差', (q4.qc - q4.sc).toFixed(2)+'%', (q4.qc - q4.sc) > 0 ? 'down' : 'up'],
+    ['QQQ 盘中极值', q4.qi.toFixed(2)+'%', 'up'],
+    ['SPY 盘中极值', q4.si.toFixed(2)+'%', 'down'],
+    ['熊市阈值', '-20.00%', 'g'],
+    ['历史均值 QQQ', '-32.74%', 'g'],
+    ['历史均值 SPY', '-30.64%', 'g'],
+    ['见底耗时', q4.dur.replace(' (进行中)',''), ''],
+    ['数据源', LIVE.src, ''],
+    ['更新', LIVE.stamp, '']
+  ] : [
     ['QQQ 收盘','$608.45',''],
     ['QQQ 回撤','-19.90%','up'],
     ['SPY 收盘','$689.81',''],
@@ -1620,7 +1655,163 @@ function bindMotion(){
 }
 
 /* ============================================================
-   13. BOOT
+   13. LIVE DATA — 打开即自动计算最新回撤, 并定时刷新
+       实时行情: 腾讯 qt.gtimg.cn (script 注入, 免跨域)
+       日K历史:  新浪 US_MinKService (原生 JSONP, 免跨域)
+       失败自动回退静态快照, 不影响页面使用
+   ============================================================ */
+const LIVE = {
+  q4Start : '2026-10-06',          // 本轮回撤峰值起点 (峰值自动取此后最高)
+  quoteMs : 20000,                 // 实时行情轮询间隔
+  klineMs : 600000,                // 日K刷新间隔 (10 分钟)
+  ok      : false,
+  src     : '静态快照',
+  stamp   : '2026-11-20 收盘',
+  sym     : { qqq:'usQQQ', spy:'usSPY' },
+  sinaSym : { qqq:'qqq',  spy:'spy' },
+  q       : { qqq:null, spy:null },          // 实时行情字段
+  bars    : { qqq:[], spy:[] },              // 日K [{d,o,h,l,c}]
+  peakClose: {},                             // {v,d} 峰值收盘 + 日期
+  peakHigh : {},                             // {v,d} 峰值盘中最高
+  lastDate : {}
+};
+
+function loadScript(url){
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    const t = setTimeout(()=>{ s.remove(); rej(new Error('timeout')); }, 9000);
+    s.onload  = () => { clearTimeout(t); res(); };
+    s.onerror = () => { clearTimeout(t); s.remove(); rej(new Error('network')); };
+    s.src = url;
+    document.head.appendChild(s);
+  });
+}
+
+async function fetchQuote(key){
+  const code = LIVE.sym[key];
+  await loadScript('https://qt.gtimg.cn/q=' + code + '&r=' + Math.random());
+  const raw = window['v_' + code];
+  if(!raw) throw new Error('empty quote');
+  const f = raw.split('~');
+  return { price:+f[3], prevClose:+f[4], time:f[30]||'', high:+f[33], low:+f[34],
+           chg:+f[31], chgPct:+f[32], wk52High:+f[47]||0 };
+}
+
+async function fetchDaily(key){
+  const vName = '_skLive' + key.toUpperCase() + Math.random().toString(36).slice(2,7);
+  const url = 'https://stock.finance.sina.com.cn/usstock/api/jsonp_v2.php/'
+            + 'var%20' + encodeURIComponent(vName) + '%3D/US_MinKService.getDailyK?symbol='
+            + LIVE.sinaSym[key] + '&r=' + Math.random();
+  await loadScript(url);
+  const rows = window[vName] || window._t_;
+  if(!rows || !rows.length) throw new Error('empty kline');
+  return rows.map(r => ({ d:r.d, o:+r.o, h:+r.h, l:+r.l, c:+r.c }));
+}
+
+async function refreshKlines(){
+  const [kq, ks] = await Promise.all([fetchDaily('qqq'), fetchDaily('spy')]);
+  LIVE.bars.qqq = kq; LIVE.bars.spy = ks;
+  for(const k of ['qqq','spy']){
+    const seg = LIVE.bars[k].filter(r => r.d >= LIVE.q4Start);
+    if(!seg.length) continue;
+    LIVE.peakClose[k] = seg.reduce((a,r)=> r.c > a.v ? {v:r.c, d:r.d} : a, {v:-1, d:''});
+    LIVE.peakHigh[k]  = seg.reduce((a,r)=> r.h > a.v ? {v:r.h, d:r.d} : a, {v:-1, d:''});
+    LIVE.lastDate[k]  = LIVE.bars[k][LIVE.bars[k].length-1].d;
+  }
+}
+
+async function refreshQuotes(){
+  const [qq, sp] = await Promise.all([fetchQuote('qqq'), fetchQuote('spy')]);
+  LIVE.q.qqq = qq; LIVE.q.spy = sp;
+}
+
+/* 将实时计算结果写回 2026 Q4 数据行, 并联动全部面板 */
+function applyLive(){
+  const q4 = DATA.find(d => d.id === 'q42026');
+  const qq = LIVE.q.qqq, sp = LIVE.q.spy;
+  if(!qq || !sp || !LIVE.peakClose.qqq) return;
+
+  const qcQ = (qq.price / LIVE.peakClose.qqq.v - 1) * 100;   // 收盘口径: 最新价 vs 峰值收盘
+  const qcS = (sp.price / LIVE.peakClose.spy.v - 1) * 100;
+  const qiQ = (qq.low / LIVE.peakHigh.qqq.v - 1) * 100;      // 盘中口径: 当日最低 vs 峰值最高
+  const qiS = (sp.low / LIVE.peakHigh.spy.v - 1) * 100;
+
+  q4.qc = +qcQ.toFixed(2);  q4.sc = +qcS.toFixed(2);
+  q4.qi = +qiQ.toFixed(2);  q4.si = +qiS.toFixed(2);
+  q4.period = LIVE.peakClose.qqq.d + ' → ' + (LIVE.lastDate.qqq || qq.time.slice(0,10) || '');
+  const days = Math.max(1, Math.round((new Date(qq.time.slice(0,10) || LIVE.lastDate.qqq)
+                 - new Date(LIVE.peakClose.qqq.d)) / 86400000));
+  q4.dur = days + ' 个自然日 (进行中)';
+  q4.rec = '尚未见底 (实时跟踪)';
+  q4.summary = `最新价 $${qq.price.toFixed(2)}，自 ${LIVE.peakClose.qqq.d} 收盘峰值 $${LIVE.peakClose.qqq.v.toFixed(2)} 以来回撤 ${q4.qc.toFixed(2)}%；当日盘中最低 $${qq.low.toFixed(2)} 较峰值盘中高点 $${LIVE.peakHigh.qqq.v.toFixed(2)} 曾达 ${q4.qi.toFixed(2)}%，${Math.abs(q4.qi) >= 20 ? '已刺穿' : '尚未收盘刺穿'}技术性熊市线；SPY 同期回撤 ${q4.sc.toFixed(2)}%。实时数据源：${LIVE.src}。`;
+
+  renderGauge();
+  renderDepth();
+  renderStress();
+  renderTable();
+  renderInspector();
+  renderTicker();
+  drawChart();
+  renderLiveStatus();
+}
+
+function renderLiveStatus(){
+  const ok = LIVE.ok && LIVE.q.qqq;
+  $('liveBadge').classList.toggle('ok', ok);
+  $('liveDot').classList.toggle('ok', ok);
+  $('liveLabel').textContent = ok ? 'LIVE' : 'SNAPSHOT';
+  $('liveStamp').textContent = ok
+    ? '实时 · ' + (LIVE.q.qqq.time || LIVE.stamp)
+    : '2026-11-20 收盘 · 数据源不可达';
+  const hs = $('heroStatus');
+  hs.textContent = ok ? '实时跟踪' : '临界熊市';
+  hs.style.color = ok ? 'var(--teal-soft)' : 'var(--rose-soft)';
+  $('footLive').textContent = ok
+    ? 'LIVE · ' + LIVE.src.toUpperCase() + ' · ' + (LIVE.q.qqq.time || '')
+    : 'STATIC SNAPSHOT · 2026-11-20';
+}
+
+async function refreshLive(){
+  try{ await refreshKlines(); }catch(e){ /* 日K失败时用52周高点兜底 */ }
+  try{
+    await refreshQuotes();
+    // 日K失败时, 用腾讯行情里的52周最高价兜底近似峰值
+    for(const k of ['qqq','spy']){
+      if(!LIVE.peakClose[k] && LIVE.q[k].wk52High){
+        LIVE.peakClose[k] = { v:LIVE.q[k].wk52High, d:LIVE.q4Start };
+        LIVE.peakHigh[k]  = { v:LIVE.q[k].wk52High, d:LIVE.q4Start };
+      }
+    }
+    if(LIVE.q.qqq && LIVE.peakClose.qqq){
+      LIVE.ok = true;
+      LIVE.src = '腾讯/新浪行情';
+      if(LIVE.q.qqq.time) LIVE.stamp = LIVE.q.qqq.time;
+      applyLive();
+    }else{
+      renderLiveStatus();
+    }
+  }catch(e){
+    LIVE.ok = false;
+    renderLiveStatus();
+  }
+}
+
+async function tickQuotes(){
+  try{
+    await refreshQuotes();
+    if(LIVE.peakClose.qqq){
+      LIVE.ok = true;
+      if(LIVE.q.qqq.time) LIVE.stamp = LIVE.q.qqq.time;
+      applyLive();
+    }
+  }catch(e){
+    LIVE.ok = false;
+    renderLiveStatus();
+  }
+}
+
+/* ============================================================
+   14. BOOT
    ============================================================ */
 window.addEventListener('DOMContentLoaded', ()=>{
   fillSelect();
@@ -1635,6 +1826,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
   drawChart();
   animateChart();
   setTimeout(()=>drawChart(), 260);
+
+  // 实时行情: 打开即拉取并计算, 之后定时轮询
+  renderLiveStatus();
+  refreshLive();
+  setInterval(tickQuotes, LIVE.quoteMs);
+  setInterval(refreshLive, LIVE.klineMs);
 });
 </script>
 </body>
